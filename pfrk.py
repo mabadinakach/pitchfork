@@ -35,10 +35,14 @@ def hello_world(_artist, _album):
     db = firebase.database()
     
     try:
-        p = pitchfork.search("the beatles", "help")
-        #p = pitchfork.search(_artist, _album)
+        #p = pitchfork.search("the beatles", "help")
+        p = pitchfork.search(_artist, _album)
     except IndexError as error:
-        return str(error)
+        json = jsonify({
+            "status":False,
+            "message":str(error)
+        })
+        return json
 
     print(p.cover())
 
