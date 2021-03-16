@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'dart:developer';
 
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_database/firebase_database.dart';
 
 void main() {
   runApp(MyApp());
@@ -292,7 +293,7 @@ class _ReviewDetailState extends State<ReviewDetail> {
               ),
               SizedBox(height: 20),
               Text(
-                data["editorial"],
+                data["review"],
                 style: TextStyle(
                   fontSize: 20,
                   color: Colors.black
@@ -315,16 +316,74 @@ class Explore extends StatefulWidget {
 }
 
 class _ExploreState extends State<Explore> {
+
+  final databaseReference = FirebaseDatabase.instance.reference().child("genre");
+
+  List <String> genres = [];
+
+  void readData() async{
+    final database = await FirebaseDatabase.instance
+        .reference()
+        .child("genre")
+        .once();
+        
+      setState(() {
+        database.value.forEach((key,values) => genres.add(key));   
+      });
+      
+
+      print(genres);
+  }
+
+  void readDataDetail(String genre) async{
+    final database = await FirebaseDatabase.instance
+        .reference()
+        .child("genre")
+        .child(genre)
+        .once();
+
+      List <String> bands = [];
+        
+      setState(() {
+        database.value.forEach((key,values) => bands.add(key));   
+      });
+
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ExploreDetail({
+        "genre":genre,
+        "data":bands
+      })));
+    
+  }
+
+  @override
+  void initState() { 
+    super.initState();
+    readData();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
+    return genres.length <= 0 ? CircularProgressIndicator() : ListView.builder(
       itemCount: 1,
       itemBuilder: (BuildContext context, int index) {
       return Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
-            Text("As more users search for reviews, there will be more to explore here.")
+            Text("As more users search for reviews, there will be more to explore here.", style: TextStyle(fontSize: 16), textAlign: TextAlign.center,),
+            SizedBox(height: 20),
+            for(var i = 0;i<genres.length; i++) GestureDetector(
+              onTap: () {
+                readDataDetail(genres[i]);
+              },
+                child: Container(
+                margin: EdgeInsets.all(10),
+                color: Theme.of(context).accentColor,
+                width: MediaQuery.of(context).size.width-50,
+                height: 100,
+                child: Center(child: Text(genres[i], style: TextStyle(fontSize: 20, color: Colors.white)))
+              ),
+            )
           ],
         ),
       );
@@ -333,15 +392,144 @@ class _ExploreState extends State<Explore> {
   }
 }
 
-class PlaceholderWidget extends StatelessWidget {
- final Color color;
+class ExploreDetail extends StatefulWidget {
+  var data;
+  ExploreDetail(this.data);
 
- PlaceholderWidget(this.color);
+  @override
+  _ExploreDetailState createState() => _ExploreDetailState(data);
+}
 
- @override
- Widget build(BuildContext context) {
-   return Container(
-     color: color,
-   );
- }
+class _ExploreDetailState extends State<ExploreDetail> {
+
+  var data;
+  _ExploreDetailState(this.data);
+
+  @override
+  void initState() { 
+    super.initState();
+    print(data["data"]);
+  }
+
+  void readDataDetail(String band) async{
+    final database = await FirebaseDatabase.instance
+        .reference()
+        .child("genre")
+        .child(data["genre"])
+        .child(band)
+        .once();
+
+      List <String> albums = [];
+        
+      setState(() {
+        database.value.forEach((key,values) => albums.add(key));   
+      });
+
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => Band({
+        "band":band,
+        "data":albums,
+        "genre":data["genre"]
+      })));
+    
+  }
+
+  
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(data["genre"]),
+      ),
+      body: ListView.builder(
+        itemCount: 1,
+        itemBuilder: (BuildContext context, int index) {
+        return Column(
+          children: [
+            for(var i = 0;i<data["data"].length; i++) GestureDetector(
+              onTap: () {
+                readDataDetail(data["data"][i]);
+              },
+                child: Container(
+                margin: EdgeInsets.all(10),
+                color: Theme.of(context).accentColor,
+                width: MediaQuery.of(context).size.width-50,
+                height: 100,
+                child: Center(child: Text(data["data"][i], style: TextStyle(fontSize: 20, color: Colors.white)))
+              ),
+            )
+          ],
+        );
+      },
+      ),
+    );
+  }
+}
+
+class Band extends StatefulWidget {
+  var data;
+  Band(this.data);
+
+  @override
+  _BandState createState() => _BandState(data);
+}
+
+class _BandState extends State<Band> {
+
+  var data;
+  _BandState(this.data);
+
+  void readDataDetail(String album) async{
+    final database = await FirebaseDatabase.instance
+        .reference()
+        .child("genre")
+        .child(data["genre"])
+        .child(data["band"])
+        .child(album)
+        .once();
+
+      List <String> albums = [];
+        
+
+      Map<String,dynamic> review = {};
+      
+      setState(() {
+        database.value.forEach((key,values) => review[key] = values);   
+      });
+
+      print(review);
+
+      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ReviewDetail(review)));
+    
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(data["band"]),
+      ),
+      body: ListView.builder(
+        itemCount: 1,
+        itemBuilder: (BuildContext context, int index) {
+        return Column(
+          children: [
+            for(var i = 0;i<data["data"].length; i++) GestureDetector(
+              onTap: () {
+                readDataDetail(data["data"][i]);
+              },
+                child: Container(
+                margin: EdgeInsets.all(10),
+                color: Theme.of(context).accentColor,
+                width: MediaQuery.of(context).size.width-50,
+                height: 100,
+                child: Center(child: Text(data["data"][i], style: TextStyle(fontSize: 20, color: Colors.white), textAlign: TextAlign.center,))
+              ),
+            )
+          ],
+        );
+       },
+      ),
+    );
+  }
 }

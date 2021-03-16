@@ -47,7 +47,7 @@ def hello_world(_artist, _album):
     print(p.cover())
 
     id = random.randint(1, 10000)
-    data = {"album":p.album(),"cover":p.cover(),"score":p.score(),"review":p.editorial()}
+    data = {"album":p.album(),"cover":p.cover(),"score":p.score(),"review":p.editorial(),"artist":p.artist(),"genre":p.genre(),"author":p.author()}
     db.child("genre").child(p.genre()).child(p.artist()).child(p.album()).set(data)
     db.child("artist").child(p.artist()).child(p.album()).set({"cover":p.cover(), "score":p.score(), "review":p.editorial()})
     json = jsonify({
@@ -60,7 +60,7 @@ def hello_world(_artist, _album):
             "score":p.score(),
             "cover":p.cover(),
             "author":p.author(),
-            "editorial":p.editorial(),
+            "review":p.editorial(),
         }
     })
     return json

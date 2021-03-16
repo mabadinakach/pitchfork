@@ -91,7 +91,10 @@ class Review:
 
     def genre(self):
         genre = self.soup.find(class_="genre-list__link")
-        return genre.get_text()
+        genreText = genre.get_text()
+        if "/" in genreText:
+            genreText = genreText.replace("/", " - ")
+        return genreText
 
     def author(self):
         author = self.soup.find(class_="authors-detail__display-name")
