@@ -1,0 +1,4 @@
+beautifulsoup4==4.9.1
+Flask==1.1.2
+urllib3==1.25.10
+virtualenv==20.0.31
