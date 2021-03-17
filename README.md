@@ -17,7 +17,7 @@ An app designed to get data from pitchfork and bundle it up inside a mobile app
 3. Install the dependencies
    - `pip install -r requirements.txt` 
 4. Start flask app
-   - `flask run -h 0.0.0.0`
+   - `flask run --host=0.0.0.0`
 5. Run app in iOS simulator (Android currently not supported)
    * `pitchfork_app/ios/Runner.xcworkspace`
    * Note: if you want to run it on your real device you will need an active Apple developer account.
