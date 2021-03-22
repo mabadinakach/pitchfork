@@ -2,10 +2,15 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:math';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+FirebaseAuth auth = FirebaseAuth.instance;
+
 
 void main() {
   runApp(MyApp());
@@ -30,8 +35,7 @@ const MaterialColor kPrimaryColor = const MaterialColor(
   },
 );
 
-class MyApp extends StatelessWidget {
-  
+class MyApp extends StatelessWidget {  
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
@@ -40,8 +44,273 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: kPrimaryColor,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: _EmailPasswordForm() //MyHomePage(title: 'Flutter Demo Home Page'),
     );
+  }
+}
+
+class _RegisterEmailSection extends StatefulWidget {
+  final String title = 'Registration';
+  @override
+  State<StatefulWidget> createState() => 
+      _RegisterEmailSectionState();
+}
+
+class _RegisterEmailSectionState extends State<_RegisterEmailSection> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _success;
+  String _userEmail;
+
+  void _showError(error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: new Text("Error"),
+          content: Text(error),
+          actions: <Widget>[
+            new TextButton(
+              child: new Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<UserCredential> _register(String email, String password) async {
+    FirebaseApp app = await Firebase.initializeApp();
+    UserCredential userCredential;
+    try {
+        userCredential = await FirebaseAuth.instanceFor(app: app)
+        .createUserWithEmailAndPassword(email: email, password: password);
+        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => MyHomePage()), (route) => false);
+        setState(() {
+          _success = true;
+          _userEmail = userCredential.user.email;
+        });
+    }
+    on FirebaseAuthException catch (e) {
+      // Do something with exception. This try/catch is here to make sure 
+      // that even if the user creation fails, app.delete() runs, if is not, 
+      // next time Firebase.initializeApp() will fail as the previous one was
+      // not deleted.
+      _showError(e);
+      return userCredential;
+    }
+    
+    //await app.delete();
+    print(userCredential);
+    
+    return Future.sync(() => userCredential);
+  }  
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                validator: (String value) {
+                  if (value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 
+                    'Password'),
+                validator: (String value) {
+                  if (value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState.validate()) {
+                      _register(_emailController.text, _passwordController.text);
+                    }
+                  },
+                  child: const Text('Submit'),
+                ),
+              ),
+              Container(
+                alignment: Alignment.center,
+                child: Text(_success == null
+                    ? ''
+                    : (_success
+                        ? 'Successfully registered ' + _userEmail
+                        : 'Registration failed')),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _EmailPasswordForm extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => _EmailPasswordFormState();
+}
+class _EmailPasswordFormState extends State<_EmailPasswordForm> {
+
+  Future<UserCredential> _signInWithEmailAndPassword(email, password) async {
+    FirebaseApp app = await Firebase.initializeApp();
+    UserCredential userCredential;
+  try {
+    userCredential = await FirebaseAuth.instanceFor(app: app).signInWithEmailAndPassword(
+      email: email,
+      password: password
+    );
+    print(userCredential);
+    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => MyHomePage()), (route) => false);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        _showError('No user found for that email.');
+      } else if (e.code == 'wrong-password') {
+        _showError('Wrong password provided for that user.');
+      }
+    }
+
+    return userCredential;
+
+  }
+
+  void _showError(error) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: new Text("Error"),
+          content: Text(error),
+          actions: <Widget>[
+            new TextButton(
+              child: new Text("Close"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _success;
+  String _userEmail;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Sign In"),),
+      body: ListView.builder(
+        itemCount: 1,
+        itemBuilder: (BuildContext context, int index) {
+        return Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+                validator: (String value) {
+                  if (value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                controller: _passwordController,
+                decoration: const InputDecoration(labelText: 'Password'),
+                validator: (String value) {
+                  if (value.isEmpty) {
+                    return 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    primary: Colors.green, // background
+                    onPrimary: Colors.white, // foreground
+                  ),
+                  onPressed: () async {
+                    if (_formKey.currentState.validate()) {
+                      _signInWithEmailAndPassword(_emailController.text, _passwordController.text);
+                    }
+                  },
+                  child: const Text('Submit'),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                alignment: Alignment.center,
+                child: ElevatedButton(
+                  
+                  onPressed: () async {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => _RegisterEmailSection()));
+                  },
+                  child: const Text('Create Account'),
+                ),
+              ),
+              Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  _success == null
+                      ? ''
+                      : (_success
+                      ? 'Successfully signed in ' + _userEmail
+                      : 'Sign in failed'),
+                  style: TextStyle(color: Colors.red),
+                ),
+              )
+            ],
+          ),
+        ),
+        );
+       },
+      ),
+    );
+  }
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }
 
