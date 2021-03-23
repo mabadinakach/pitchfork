@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -69,8 +70,8 @@ class _RegisterEmailSectionState extends State<_RegisterEmailSection> {
       builder: (BuildContext context) {
         return AlertDialog(
           content: Container(
-              width: 50,
-              height: 100,
+              width: 300,
+              height: 300,
               child: Image.network(
                   "https://media3.giphy.com/media/gdTk7DyjblYWyqyBhG/giphy.gif")),
         );
@@ -161,6 +162,7 @@ class _RegisterEmailSectionState extends State<_RegisterEmailSection> {
               ),
               TextFormField(
                 controller: _passwordController,
+                obscureText: true,
                 decoration: const InputDecoration(labelText: 'Password'),
                 validator: (String value) {
                   if (value.isEmpty) {
@@ -220,8 +222,8 @@ class _EmailPasswordFormState extends State<_EmailPasswordForm> {
       builder: (BuildContext context) {
         return AlertDialog(
           content: Container(
-              width: 50,
-              height: 100,
+              width: 300,
+              height: 300,
               child: Image.network(
                   "https://media3.giphy.com/media/gdTk7DyjblYWyqyBhG/giphy.gif")),
         );
@@ -311,84 +313,137 @@ class _EmailPasswordFormState extends State<_EmailPasswordForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Sign In"),
-      ),
-      body: ListView.builder(
-        itemCount: 1,
-        itemBuilder: (BuildContext context, int index) {
-          return Form(
-            key: _formKey,
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  TextFormField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(labelText: 'Email'),
-                    validator: (String value) {
-                      if (value.isEmpty) {
-                        return 'Please enter some text';
-                      }
-                      return null;
-                    },
-                  ),
-                  TextFormField(
-                    controller: _passwordController,
-                    decoration: const InputDecoration(labelText: 'Password'),
-                    validator: (String value) {
-                      if (value.isEmpty) {
-                        return 'Please enter some text';
-                      }
-                      return null;
-                    },
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    alignment: Alignment.center,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        primary: Colors.green, // background
-                        onPrimary: Colors.white, // foreground
+      body: Container(
+        decoration: new BoxDecoration(
+          image: new DecorationImage(
+            image: NetworkImage("https://images.creativemarket.com/0.1.0/ps/5485573/1820/2729/m1/fpnw/wm1/dj6xbb8wca7h0yygguuana77wwze79vn5vt438acjhtyq8nzw1hivbeuwvt3vge1-.jpg?1543838339&s=b5743be61fb96d85d57e8f1be46ebe52"),
+            fit: BoxFit.cover,
+          ),
+        ),
+          child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+          child: Container(
+            decoration: new BoxDecoration(color: Colors.white.withOpacity(0.0)),
+            child: ListView.builder(
+              itemCount: 1,
+              itemBuilder: (BuildContext context, int index) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 20),
+                      Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.all(Radius.circular(10))
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Pitchfork Client App",
+                            style: TextStyle(
+                              fontSize: 30,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
                       ),
-                      onPressed: () async {
-                        if (_formKey.currentState.validate()) {
-                          _signInWithEmailAndPassword(
-                              _emailController.text, _passwordController.text);
-                        }
-                      },
-                      child: const Text('Submit'),
-                    ),
+                      SizedBox(height: 50),
+                      Text("Sign in", style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold)),
+                      Container(
+                        
+                          padding: EdgeInsets.all(10),
+                          margin: EdgeInsets.only(top: 10,bottom: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(Radius.circular(10))
+                          ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              // Container(
+                              //   margin: EdgeInsets.only(bottom: 50, top: 30),
+                              //   child: Image.network("https://soodgounds.files.wordpress.com/2017/10/pitcfork.png?w=768")
+                              // ),
+                              TextFormField(
+                                controller: _emailController,
+                                decoration: const InputDecoration(labelText: 'Email'),
+                                validator: (String value) {
+                                  if (value.isEmpty) {
+                                    return 'Please enter your email';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              TextFormField(
+                                obscureText: true,
+                                controller: _passwordController,
+                                decoration: const InputDecoration(labelText: 'Password'),
+                                validator: (String value) {
+                                  if (value.isEmpty) {
+                                    return 'Please enter some password';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              SizedBox(height: 30),
+                              Container(
+                                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                                alignment: Alignment.center,
+                                child: ElevatedButton(
+                                  
+                                  style: ElevatedButton.styleFrom(
+                                    primary: Colors.green, // background
+                                    onPrimary: Colors.white, // foreground
+                                  ),
+                                  onPressed: () async {
+                                    if (_formKey.currentState.validate()) {
+                                      _signInWithEmailAndPassword(
+                                          _emailController.text, _passwordController.text);
+                                    }
+                                  },
+                                  child: Container(width: 120, height: 50, child: Center(child: const Text('Submit', style: TextStyle(fontSize: 20)))),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Center(child: Text("- or -", style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.bold))),
+                      Container(
+                        padding: EdgeInsets.all(10),
+                          margin: EdgeInsets.only(top: 10,bottom: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(Radius.circular(10))
+                          ),
+                        child: Column(
+                          children: [
+                            //Center(child: Text("- or -")),
+                            Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16.0),
+                              alignment: Alignment.center,
+                              child: ElevatedButton(
+                                onPressed: () async {
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => _RegisterEmailSection()));
+                                },
+                                child: Container(width: 120, height: 50, child: Center(child: const Text('Create acount', style: TextStyle(fontSize: 15), textAlign: TextAlign.center))),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                      
+                    ],
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                    alignment: Alignment.center,
-                    child: ElevatedButton(
-                      onPressed: () async {
-                        Navigator.of(context).push(MaterialPageRoute(
-                            builder: (context) => _RegisterEmailSection()));
-                      },
-                      child: const Text('Create Account'),
-                    ),
-                  ),
-                  Container(
-                    alignment: Alignment.center,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      _success == null
-                          ? ''
-                          : (_success
-                              ? 'Successfully signed in ' + _userEmail
-                              : 'Sign in failed'),
-                      style: TextStyle(color: Colors.red),
-                    ),
-                  )
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -535,8 +590,8 @@ class _SearchState extends State<Search> {
       builder: (BuildContext context) {
         return AlertDialog(
           content: Container(
-              width: 50,
-              height: 100,
+              width: 300,
+              height: 300,
               child: Image.network(
                   "https://media3.giphy.com/media/gdTk7DyjblYWyqyBhG/giphy.gif")),
         );
